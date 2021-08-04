@@ -1,0 +1,78 @@
+plugins {
+	id 'org.springframework.boot' version '2.5.2'
+	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id 'java'
+	id "io.franzbecker.gradle-lombok" version "4.0.0"
+	id 'com.google.cloud.tools.jib' version '3.1.1'
+}
+
+group = 'org.redistest'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.security:spring-security-oauth2-jose'
+	implementation 'org.apache.commons:commons-pool2:2.10.0'
+	implementation 'org.bouncycastle:bc-fips:1.0.2'
+	implementation 'org.bouncycastle:bctls-fips:1.0.11.1'
+	implementation 'redis.clients:jedis'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+test {
+	useJUnitPlatform()
+}
+
+jib {
+	def dockerPublishRegistryUrl="oridool"
+
+	System.setProperty('jib.console', 'plain')
+	String tagVersion = "1.0.0"
+	def jibFromUser = project.properties.getOrDefault('jibFromUser', "")
+	def jibFromPassword = project.properties.getOrDefault('jibFromPassword', "")
+	def jibToUser = project.properties.getOrDefault('jibToUser', "")
+	def jibToPassword = project.properties.getOrDefault('jibToPassword', "")
+	def publishedImageTagSuffix = project.properties.getOrDefault('publishedImageTagSuffix', '-13')
+	from {
+		image = "oridool/zulu:11.45.28-13"
+		auth {
+			username = jibFromUser
+			password = jibFromPassword
+		}
+	}
+	to {
+		image = "${dockerPublishRegistryUrl}/redistest"
+		tags = [tagVersion+publishedImageTagSuffix]
+		if (image ==~ /.*ecr.*amazonaws.*/) {
+			// if AWS ECR, exchange the Key/Secret to User/Pass
+			def cmdout = new StringBuilder(), cmderr = new StringBuilder()
+			String awsProfile = project.hasProperty('awsProfile') ? "--profile " +  project.properties.get('awsProfile') : (System.getenv('AWS_PROFILE') ? "--profile " + System.getenv('AWS_PROFILE') :  "")
+
+			def proc = "aws ecr get-login --region eu-west-1 ${awsProfile} --no-include-email".execute()
+			proc.consumeProcessOutput(cmdout, cmderr)
+			proc.waitForOrKill(5000)
+			//println "out> $cmdout err> $cmderr"
+			assert cmderr.isBlank()
+			assert proc.exitValue() == 0
+			def splited = cmdout.split()
+			jibToUser = splited[3]
+			jibToPassword = splited[5]
+		}
+
+		auth {
+			username = jibToUser
+			password = jibToPassword
+		}
+	}
+	container {
+		entrypoint = ['/bin/sh', '-c', 'java ${JAVA_OPTS} -cp /app/resources:/app/classes:/app/libs/* org.redistest.RedistestApplication']
+	}
+}
+

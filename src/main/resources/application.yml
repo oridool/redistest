@@ -1,0 +1,56 @@
+server:
+  port: 7776   #tomcat port
+  compression:
+    enabled: true
+
+logging:
+  level:
+    root: INFO
+    org.springframework.security: INFO
+#    io.lettuce.core.protocol: TRACE
+application:
+  num-of-threads : 8
+  wait-min-millis: 1000
+  wait-max-millis: 2000
+  log-period-millis: 30000
+
+spring:
+  redis:
+    client-type : jedis
+    host: 10.70.220.15
+    port: 6379
+    username:
+    password:
+#    ssl: true
+    ssl: false
+    ssl-verify : false
+    maxRetriesOnFailure: 1
+    connectTimeout : 30
+    lettuce:
+      pool.maxActive: 10
+      pool.minIdle: 10
+      socketOptions.keepalive: true
+    jedis:
+      pool.maxActive: 20
+      pool.minIdle: 20
+
+# Prometheus metrics
+management:
+  server:
+    port: 19019
+  endpoints:
+    enabled-by-default: false
+    web:
+      exposure:
+        include: health, info, prometheus
+  endpoint:
+    health:
+      enabled: true
+      # /actuator/health/readiness
+      # /actuator/health/liveness
+      probes:
+        enabled: true
+    info:
+      enabled: true
+    prometheus:
+      enabled: true

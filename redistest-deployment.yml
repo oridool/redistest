@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redistest-test
+  labels:
+    app: redistest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redistest
+      release: 1.0.0
+  template:
+    metadata:
+      labels:
+        app: redistest
+        release: 1.0.0
+      annotations:
+    spec:
+      securityContext:
+        fsGroup: 1000
+      serviceAccountName:
+      containers:
+        - name: redistest
+          image: oridool/redistest:1.0.0-13
+          securityContext:
+            privileged: false
+            runAsUser: 1000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+          ports:
+            - name: http
+              protocol: TCP
+              containerPort: 7776
+            - name: metrics
+              protocol: TCP
+              containerPort: 19019
+          env:
+            - name: JAVA_OPTS
+              value: -XX:MaxRAMPercentage=75 -Dspring.config.location=file:/usr/local/application.yml -Dorg.bouncycastle.fips.approved_only=true
+          resources:
+          volumeMounts:
+            - name: appconfig
+              mountPath: /usr/local
+              readOnly: true
+      volumes:
+        - name: appconfig
+          configMap:
+            name: redistest-config
+
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redistest-config
+  labels:
+    app: redistest
+data:
+  application.yml: |
+    server:
+      port: 7777
+      compression:
+        enabled: true
+    logging:
+      level:
+        root: WARN
+        #    io.lettuce.core.protocol: TRACE
+    application:
+      num-of-threads : 10
+      wait-min-millis: 5
+      wait-max-millis: 50
+      log-period-millis: 60000
+    spring:
+      redis:
+        client-type : lettuce
+        host: master.xxxx.cache.amazonaws.com
+        port: 6379
+        username:
+        password:
+        ssl: true
+        ssl-verify: true
+        maxRetriesOnFailure: 1
+        connectTimeout : 30
+        lettuce:
+          pool.maxActive: 10
+          pool.minIdle: 10
+          socketOptions.keepalive: true
+        jedis:
+          pool.maxActive: 20
+          pool.minIdle: 20
+
+    management:
+      server:
+        port: 19019
+      endpoints:
+        enabled-by-default: false
+        web:
+          exposure:
+            include: health, info, prometheus
+      endpoint:
+        health:
+          enabled: true
+          probes:
+            enabled: true
+        info:
+          enabled: true
+        prometheus:
+          enabled: true
