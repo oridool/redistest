@@ -39,7 +39,7 @@ jib {
 	def jibFromPassword = project.properties.getOrDefault('jibFromPassword', "")
 	def jibToUser = project.properties.getOrDefault('jibToUser', "")
 	def jibToPassword = project.properties.getOrDefault('jibToPassword', "")
-	def publishedImageTagSuffix = project.properties.getOrDefault('publishedImageTagSuffix', '-13')
+	def publishedImageTagSuffix = project.properties.getOrDefault('publishedImageTagSuffix', '-15')
 	from {
 		image = "oridool/zulu:11.45.28-13"
 		auth {

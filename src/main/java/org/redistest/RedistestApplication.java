@@ -26,8 +26,10 @@ public class RedistestApplication {
 	@PostConstruct
 	private void Init() {
 		// For supporting PS256 JWT algorithm
-		Provider bc = BouncyCastleFipsProviderSingleton.getInstance();
-		Security.addProvider(bc);
+		if (isFips) {
+			Provider bc = BouncyCastleFipsProviderSingleton.getInstance();
+			Security.addProvider(bc);
+		}
 		printSecurityProvidersInfo();
 	}
 
@@ -39,12 +41,14 @@ public class RedistestApplication {
 	private int waitMax;
 	@Value("${application.log-period-millis:0}")
 	private int logPeriodMillis;
+	@Value("${application.is-fips:true}")
+	private boolean isFips;
 
 	public static void main(String[] args) {
 		Random random = new Random();
 		ConfigurableApplicationContext run = SpringApplication.run(RedistestApplication.class, args);
 		RedistestApplication application = run.getBean(RedistestApplication.class);
-		log.warn("$$$$$$$$$  starting test application $$$$$$$$$ ");
+		log.warn("$$$$$$$$$  starting test application $$$$$$$$$ - fips mode = {}", application.isFips());
 		log.warn("$$$$$$$$$  num-of-threads:{} ", application.getNumOfThreads());
 		log.warn("$$$$$$$$$  wait-min-millis:{} ", application.getWaitMin());
 		log.warn("$$$$$$$$$  wait-max-millis:{} ", application.getWaitMax());
@@ -63,18 +67,23 @@ public class RedistestApplication {
 				int curSleepTime = 0, totalSleepTime=0;
 				int i = 0;
 				while (true) {
-					Long counterValue = ops.increment(hashKey, hashKeyFieldName, 1L);
-					curSleepTime = random.nextInt(application.getWaitMax() - application.getWaitMin()) + application.getWaitMin();
-					totalSleepTime += curSleepTime;
-					if ((application.getLogPeriodMillis() > 0) && (totalSleepTime > application.getLogPeriodMillis())) {
-						totalSleepTime = 0;
-						log.info("{} {} : {} -> {}", i++, hashKey, hashKeyFieldName, counterValue);
-					}
 					try {
+						Long counterValue = ops.increment(hashKey, hashKeyFieldName, 1L);
+						curSleepTime = random.nextInt(application.getWaitMax() - application.getWaitMin()) + application.getWaitMin();
+						totalSleepTime += curSleepTime;
+						if ((application.getLogPeriodMillis() > 0) && (totalSleepTime > application.getLogPeriodMillis())) {
+							totalSleepTime = 0;
+							log.info("{} {} : {} -> {}", i++, hashKey, hashKeyFieldName, counterValue);
+						}
+						try {
 
-						Thread.sleep(curSleepTime);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
+							Thread.sleep(curSleepTime);
+						} catch (InterruptedException e) {
+							log.error("InterruptedException on sleep", e);
+						}
+					} catch (Exception e) {
+						log.warn("Exception while performing redis command", e);
+						Thread.sleep(2000);
 					}
 				}
 			});

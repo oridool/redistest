@@ -13,10 +13,11 @@ application:
   wait-min-millis: 1000
   wait-max-millis: 2000
   log-period-millis: 30000
+  is-fips: true
 
 spring:
   redis:
-    client-type : jedis
+    client-type : lettuce
     host: 10.70.220.15
     port: 6379
     username:
