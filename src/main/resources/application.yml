@@ -14,6 +14,7 @@ application:
   wait-max-millis: 2000
   log-period-millis: 30000
   is-fips: true
+  sleep-after-error-period-millis: 1000
 
 spring:
   redis:

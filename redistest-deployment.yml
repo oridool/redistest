@@ -22,7 +22,7 @@ spec:
       serviceAccountName:
       containers:
         - name: redistest
-          image: oridool/redistest:1.0.0-15
+          image: oridool/redistest:1.0.0-19
           securityContext:
             privileged: false
             runAsUser: 1000
@@ -73,6 +73,7 @@ data:
       wait-max-millis: 50
       log-period-millis: 60000
       is-fips: true
+      sleep-after-error-period-millis: 1000
     spring:
       redis:
         client-type : lettuce

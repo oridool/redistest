@@ -19,8 +19,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.security:spring-security-oauth2-jose'
 	implementation 'org.apache.commons:commons-pool2:2.10.0'
-	implementation 'org.bouncycastle:bc-fips:1.0.2'
-	implementation 'org.bouncycastle:bctls-fips:1.0.11.1'
+	implementation 'org.bouncycastle:bc-fips:1.0.2.1'
+	implementation 'org.bouncycastle:bctls-fips:1.0.12.1'
 	implementation 'redis.clients:jedis'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -39,7 +39,7 @@ jib {
 	def jibFromPassword = project.properties.getOrDefault('jibFromPassword', "")
 	def jibToUser = project.properties.getOrDefault('jibToUser', "")
 	def jibToPassword = project.properties.getOrDefault('jibToPassword', "")
-	def publishedImageTagSuffix = project.properties.getOrDefault('publishedImageTagSuffix', '-15')
+	def publishedImageTagSuffix = project.properties.getOrDefault('publishedImageTagSuffix', '-19')
 	from {
 		image = "oridool/zulu:11.45.28-13"
 		auth {

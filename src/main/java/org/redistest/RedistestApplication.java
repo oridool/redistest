@@ -2,7 +2,7 @@ package org.redistest;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -25,10 +25,10 @@ public class RedistestApplication {
 
 	@PostConstruct
 	private void Init() {
-		// For supporting PS256 JWT algorithm
 		if (isFips) {
-			Provider bc = BouncyCastleFipsProviderSingleton.getInstance();
-			Security.addProvider(bc);
+			BouncyCastleFipsProvider bc = new BouncyCastleFipsProvider();
+			int addProviderIndex = Security.addProvider(bc);
+			log.warn("added BC provider at position {}", addProviderIndex);
 		}
 		printSecurityProvidersInfo();
 	}
@@ -41,6 +41,8 @@ public class RedistestApplication {
 	private int waitMax;
 	@Value("${application.log-period-millis:0}")
 	private int logPeriodMillis;
+	@Value("${application.sleep-after-error-period-millis:0}")
+	private int sleepAfterErrorPeriodMillis;
 	@Value("${application.is-fips:true}")
 	private boolean isFips;
 
@@ -65,6 +67,7 @@ public class RedistestApplication {
 				String hashKey = hashKeyPrefix + ":" + threadName + ":" + LocalDateTime.now().toString();
 				log.warn("starting redis client for thread {} with key {}", threadName, hashKey);
 				int curSleepTime = 0, totalSleepTime=0;
+				long curErrorCount = 0;
 				int i = 0;
 				while (true) {
 					try {
@@ -73,7 +76,7 @@ public class RedistestApplication {
 						totalSleepTime += curSleepTime;
 						if ((application.getLogPeriodMillis() > 0) && (totalSleepTime > application.getLogPeriodMillis())) {
 							totalSleepTime = 0;
-							log.info("{} {} : {} -> {}", i++, hashKey, hashKeyFieldName, counterValue);
+							log.info("{} {} : {} -> {} ({})", i++, hashKey, hashKeyFieldName, counterValue, curErrorCount);
 						}
 						try {
 
@@ -82,8 +85,11 @@ public class RedistestApplication {
 							log.error("InterruptedException on sleep", e);
 						}
 					} catch (Exception e) {
-						log.warn("Exception while performing redis command", e);
-						Thread.sleep(2000);
+						++curErrorCount;
+						log.warn("Exception while performing redis command, curErrorCount={}", curErrorCount, e);
+						if (application.getSleepAfterErrorPeriodMillis() > 0) {
+							Thread.sleep(application.getSleepAfterErrorPeriodMillis());
+						}
 					}
 				}
 			});
@@ -91,7 +97,7 @@ public class RedistestApplication {
 	}
 
 	private void printSecurityProvidersInfo() {
-		log.warn("****  BouncyCastle approved mode {}  ****", CryptoServicesRegistrar.isInApprovedOnlyMode());
+//		log.warn("****  BouncyCastle approved mode {}  ****", CryptoServicesRegistrar.isInApprovedOnlyMode());
 		StringBuilder sb = new StringBuilder();
 		Provider[] providers = Security.getProviders();
 		for (int i=0; i< providers.length; ++i) {
