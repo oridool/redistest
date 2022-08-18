@@ -13,6 +13,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import javax.annotation.PostConstruct;
 import java.security.Provider;
 import java.security.Security;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
@@ -66,16 +67,16 @@ public class RedistestApplication {
 				String threadName = Thread.currentThread().getName();
 				String hashKey = hashKeyPrefix + ":" + threadName + ":" + LocalDateTime.now().toString();
 				log.warn("starting redis client for thread {} with key {}", threadName, hashKey);
-				int curSleepTime = 0, totalSleepTime=0;
+				int curSleepTime = 0;
+				Instant totalSleepTime = Instant.now();
 				long curErrorCount = 0;
 				int i = 0;
 				while (true) {
 					try {
 						Long counterValue = ops.increment(hashKey, hashKeyFieldName, 1L);
 						curSleepTime = random.nextInt(application.getWaitMax() - application.getWaitMin()) + application.getWaitMin();
-						totalSleepTime += curSleepTime;
-						if ((application.getLogPeriodMillis() > 0) && (totalSleepTime > application.getLogPeriodMillis())) {
-							totalSleepTime = 0;
+						if ((application.getLogPeriodMillis() > 0) && (totalSleepTime.isBefore(Instant.now().minusMillis(application.getLogPeriodMillis())))) {
+							totalSleepTime = Instant.now();
 							log.info("{} {} : {} -> {} ({})", i++, hashKey, hashKeyFieldName, counterValue, curErrorCount);
 						}
 						try {

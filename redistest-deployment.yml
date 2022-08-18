@@ -22,12 +22,16 @@ spec:
       serviceAccountName:
       containers:
         - name: redistest
-          image: oridool/redistest:1.0.0-19
+          image: oridool/redistest:1.0.0-21
           securityContext:
+            capabilities:
+              drop:
+                - all
             privileged: false
             runAsUser: 1000
             runAsNonRoot: true
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
           ports:
             - name: http
               protocol: TCP
@@ -65,12 +69,12 @@ data:
         enabled: true
     logging:
       level:
-        root: WARN
+        root: INFO
         #    io.lettuce.core.protocol: TRACE
     application:
       num-of-threads : 10
       wait-min-millis: 5
-      wait-max-millis: 50
+      wait-max-millis: 20
       log-period-millis: 60000
       is-fips: true
       sleep-after-error-period-millis: 1000
@@ -84,10 +88,10 @@ data:
         ssl: true
         ssl-verify: true
         maxRetriesOnFailure: 1
-        connectTimeout : 30
+        connectTimeout : 30000
         lettuce:
-          pool.maxActive: 10
-          pool.minIdle: 10
+          pool.maxActive: 12
+          pool.minIdle: 12
           socketOptions.keepalive: true
         jedis:
           pool.maxActive: 20
