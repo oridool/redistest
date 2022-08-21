@@ -38,7 +38,7 @@ public class RedisConfig {
     @ConditionalOnProperty(value = "spring.redis.client-type", havingValue = "lettuce", matchIfMissing = true)
     public LettuceConnectionFactory lettuceConnectionFactory(RedisProperties redisProperties) {
         LettuceClientConfiguration.LettuceClientConfigurationBuilder builder = null;
-        if (redisProperties.getLettuce() != null && redisProperties.getLettuce().getPool() != null) {
+        if (redisProperties.getLettuce() != null && redisProperties.getLettuce().getPool() != null && redisProperties.getLettuce().getPool().getEnabled()) {
             log.warn("##### LettuceConnectionFactory: initializing pooling connection, maxActive={} minIdle={}", redisProperties.getLettuce().getPool().getMaxActive(), redisProperties.getLettuce().getPool().getMinIdle());
             LettucePoolingClientConfiguration.LettucePoolingClientConfigurationBuilder poolingBuilder = LettucePoolingClientConfiguration.builder();
             GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
