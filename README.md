@@ -108,13 +108,13 @@ To run locally, make sure to fill the following parameters in `application.yml` 
 The project contains a `redistest-deployment.yml` file.  
 Make sure to set the application parameters mentioned above in the Configmap, set the Redis connection parameters and the docker image. 
 Then, to deploy it on your cluster, run the command `kubectl apply -f redistest-deployment.yml` .  
-But before doing so, you must build the docker image.  
-To build the docker image, you should run the `jib` task located in `build.gradle`.  
-The task must use a base image with a JDK/JRE. Specifically, I used a hardened image with a JRE that was configured with BouncyCastle as the security provider (overriding cacerts, java.policy, java.security files).     
-Then, set the "from" and "to" parameters. 
+
+To chnge the code and build a new docker image, you should run the `jib` task located in `build.gradle`.  
+The task must use a base image with a JDK/JRE. Specifically, I used a hardened image named 'zulu' (`docker pull oridool/zulu`) with a JRE that was configured with BouncyCastle as the security provider (overriding cacerts, java.policy, java.security files).     
+Then, set the "to" repository parameters. 
 Example (assuming you use AWS ECR for storing docker images): 
 ```shell
-gradlew jib -PdockerPublishRegistryUrl=xxx.dkr.ecr.eu-west-1.amazonaws.com -PdockerFromRegistryUrl=xxx.dkr.ecr.eu-west-1.amazonaws.com -PjibFromUser=<YOUR_REPOSITORY_USER> -PjibFromPassword=<YOUR_REPOSITORY_PASSWORD> -PawsProfile=<AWS_PROFILE>
+gradlew jib -PdockerPublishRegistryUrl=xxx.dkr.ecr.eu-west-1.amazonaws.com -PawsProfile=<AWS_PROFILE>
 ```
 
 
