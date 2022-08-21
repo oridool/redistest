@@ -1,5 +1,5 @@
 plugins {
-	id 'org.springframework.boot' version '2.6.4'
+	id 'org.springframework.boot' version '2.7.2'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'java'
 	id "io.freefair.lombok" version "6.4.1"
@@ -20,8 +20,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.security:spring-security-oauth2-jose'
 	implementation 'org.apache.commons:commons-pool2:2.11.1'
-	implementation 'org.bouncycastle:bc-fips:1.0.2.1'
-	implementation 'org.bouncycastle:bctls-fips:1.0.12.2'
+	implementation 'org.bouncycastle:bc-fips:1.0.2.3'
+	implementation 'org.bouncycastle:bctls-fips:1.0.13'
 	implementation 'redis.clients:jedis'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'

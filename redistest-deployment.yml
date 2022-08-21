@@ -4,6 +4,8 @@ metadata:
   name: redistest-test
   labels:
     app: redistest
+  annotations:
+    downscaler/exclude: 'true'
 spec:
   replicas: 1
   selector:
@@ -22,7 +24,7 @@ spec:
       serviceAccountName:
       containers:
         - name: redistest
-          image: oridool/redistest:1.0.0-21
+          image: oridool/redistest:1.0.0-27
           securityContext:
             capabilities:
               drop:
@@ -78,6 +80,8 @@ data:
       log-period-millis: 60000
       is-fips: true
       sleep-after-error-period-millis: 1000
+      max-retries-on-failure: 3
+      retry-delay-millis: 100
     spring:
       redis:
         client-type : lettuce
@@ -90,12 +94,16 @@ data:
         maxRetriesOnFailure: 1
         connectTimeout : 30000
         lettuce:
-          pool.maxActive: 12
-          pool.minIdle: 12
+          pool:
+            enabled: false
+            maxActive: 12
+            minIdle: 12
           socketOptions.keepalive: true
         jedis:
-          pool.maxActive: 20
-          pool.minIdle: 20
+          pool:
+            enabled: false
+            maxActive: 12
+            minIdle: 12
 
     management:
       server:

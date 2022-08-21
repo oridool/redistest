@@ -9,12 +9,14 @@ logging:
     org.springframework.security: INFO
 #    io.lettuce.core.protocol: TRACE
 application:
-  num-of-threads : 8
+  num-of-threads : 10
   wait-min-millis: 5
-  wait-max-millis: 50
-  log-period-millis: 180000
+  wait-max-millis: 20
+  log-period-millis: 60000
   is-fips: true
   sleep-after-error-period-millis: 1000
+  max-retries-on-failure: 3
+  retry-delay-millis: 500
 
 spring:
   redis:
@@ -29,12 +31,16 @@ spring:
     maxRetriesOnFailure: 1
     connectTimeout : 30000
     lettuce:
-      pool.maxActive: 10
-      pool.minIdle: 10
+      pool:
+        enabled: true
+        maxActive: 12
+        minIdle: 12
       socketOptions.keepalive: true
     jedis:
-      pool.maxActive: 20
-      pool.minIdle: 20
+      pool:
+        enabled: true
+        maxActive: 12
+        minIdle: 12
 
 # Prometheus metrics
 management:
