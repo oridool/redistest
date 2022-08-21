@@ -95,13 +95,13 @@ data:
         connectTimeout : 30000
         lettuce:
           pool:
-            enabled: false
+            enabled: true
             maxActive: 12
             minIdle: 12
           socketOptions.keepalive: true
         jedis:
           pool:
-            enabled: false
+            enabled: true
             maxActive: 12
             minIdle: 12
 
